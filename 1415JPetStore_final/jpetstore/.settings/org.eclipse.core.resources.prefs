@@ -1,0 +1,12 @@
+eclipse.preferences.version=1
+encoding//src/main/java/com/example/jpetstore/controller/ItemAuctionController.java=UTF-8
+encoding//src/main/java/com/example/jpetstore/controller/ItemController.java=UTF-8
+encoding//src/main/java/com/example/jpetstore/dao/ItemDao.java=UTF-8
+encoding//src/main/java/com/example/jpetstore/dao/mybatis/MybatisItemDao.java=UTF-8
+encoding//src/main/java/com/example/jpetstore/dao/mybatis/mapper/ItemMapper.java=UTF-8
+encoding//src/main/java/com/example/jpetstore/domain/Item.java=UTF-8
+encoding//src/main/java/com/example/jpetstore/service/PetStoreImpl.java=UTF-8
+encoding//src/main/webapp/WEB-INF/jsp/AuctionItem.jsp=UTF-8
+encoding//src/main/webapp/WEB-INF/jsp/makeBid.jsp=UTF-8
+encoding//src/main/webapp/WEB-INF/jsp/tiles/Category.jsp=UTF-8
+encoding//src/main/webapp/WEB-INF/jsp/tiles/index.jsp=UTF-8

@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.jpetstore.dao.mybatis.mapper.CategoryMapper">
+
+  <cache />
+  
+  <select id="getCategory" resultType="Category">
+    SELECT
+      CATID AS categoryId,
+      NAME,
+      DESCN AS description
+    FROM CATEGORY
+    WHERE CATID = #{categoryId}
+  </select>
+
+  <select id="getCategoryList" resultType="Category">
+    SELECT
+      CATID AS categoryId,
+      NAME,
+      DESCN AS description
+    FROM CATEGORY
+  </select>
+	<!--인기리스트  -->
+		<select id="selectBestList" resultType="Category">
+	<![CDATA[
+    select * from
+(select countlike, item.productid, descn
+from
+(select productid, product.descn from product, category
+where category.catid = product.category) pi, item
+where pi.productid = item.productid  
+order by countlike desc) aa
+where ROWNUM >= 1 AND ROWNUM <= 3
+]]>
+  </select>
+
+	<select id="selectBestCategoryList" resultType="Category">
+	<![CDATA[
+    select * from
+(select countlike, item.productid, descn
+from
+(select productid, product.descn from product, category
+where category.catid = product.category and category.catid = #{categoryId}) pi, item
+where pi.productid = item.productid  
+order by countlike desc) aa
+where ROWNUM >= 1 AND ROWNUM <= 3
+]]>
+  </select>
+  <!-- 인기리스트 -->
+  
+<!--myactivity recent  -->
+<select id="selectMyRecentList" resultType="Category">
+<![CDATA[
+select *
+from MYACTIVITY m, ITEM i, PRODUCT P
+where USERID = #{username} AND m.KIND='see' 
+and m.ITEMID = i.ITEMID AND i.PRODUCTID = P.PRODUCTID
+AND ROWNUM >= 1 AND ROWNUM <= 10
+]]>
+  </select> 
+<select id="selectMyLikeList" resultType="Category">
+<![CDATA[
+select *
+from MYACTIVITY m, ITEM i, PRODUCT P
+where USERID = #{username} AND m.KIND='like' 
+and m.ITEMID = i.ITEMID AND i.PRODUCTID = P.PRODUCTID
+AND ROWNUM >= 1 AND ROWNUM <= 10
+]]>
+  </select>
+  
+<delete id="deleteMyRecent" >
+delete from MYACTIVITY where ITEMID = #{param1} and USERID = #{param2} AND KIND='see' 
+</delete>
+<delete id="deleteMyLike" >
+delete from MYACTIVITY where ITEMID = #{param1} and USERID = #{param2} AND KIND='like' 
+</delete>
+
+   <select id="selectIfLikeQ" resultType="boolean">
+   <![CDATA[
+    SELECT count(*)
+    FROM MYACTIVITY
+    WHERE ITEMID = #{param1} and USERID = #{param2} AND kind='like' AND ROWNUM >= 1 AND ROWNUM <= 2 
+    ]]>
+  </select>
+</mapper>

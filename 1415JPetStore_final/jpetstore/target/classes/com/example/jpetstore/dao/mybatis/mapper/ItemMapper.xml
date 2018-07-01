@@ -1,0 +1,276 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.jpetstore.dao.mybatis.mapper.ItemMapper">
+  <cache />
+
+  <select id="getItemListByProduct" resultType="Item">
+    SELECT
+      I.ITEMID,
+      I.PRODUCTID,
+      LISTPRICE,
+      UNITCOST,
+      SUPPLIER AS supplierId,
+      I.PRODUCTID AS "product.productId",
+      NAME AS "product.name",
+      DESCN AS "product.description",
+      CATEGORY AS "product.categoryId",
+      STATUS,
+      ATTR1 AS attribute1,
+      ATTR2 AS attribute2,
+      ATTR3 AS attribute3,
+      ATTR4 AS attribute4,
+      ATTR5 AS attribute5
+    FROM ITEM I, PRODUCT P
+    WHERE P.PRODUCTID = I.PRODUCTID
+      AND I.PRODUCTID = #{value}
+  </select>
+
+  <select id="getItem" resultType="Item">
+   SELECT
+      I.ITEMID,
+      I.PRODUCTID,
+      LISTPRICE,
+      UNITCOST,
+      SUPPLIER AS supplierId,
+      I.PRODUCTID AS "product.productId",
+      NAME AS "product.name",
+      DESCN AS "product.description",
+      CATEGORY AS "product.categoryId",
+      STATUS,
+      ATTR1 AS attribute1,
+      ATTR2 AS attribute2,
+      ATTR3 AS attribute3,
+      ATTR4 AS attribute4,
+      ATTR5 AS attribute5,
+      QTY AS quantity,
+      I.COUNTLIKE AS countlike,
+      I.COUNTVIEW AS countview
+    FROM ITEM I, INVENTORY V, PRODUCT P
+    WHERE P.PRODUCTID = I.PRODUCTID
+      AND I.ITEMID = V.ITEMID
+      AND I.ITEMID = #{value}
+  </select>
+
+  <select id="getInventoryQuantity" resultType="int">
+    SELECT QTY AS value
+    FROM INVENTORY
+    WHERE ITEMID = #{itemId}
+  </select>
+
+  <update id="updateInventoryQuantity">
+    UPDATE INVENTORY 
+    SET QTY = QTY - #{increment}
+    WHERE ITEMID = #{itemId}
+  </update>
+  
+ <insert id="insertItem" parameterType="Item">
+ 	<!-- keyProperty - Item.java에 있는 -->
+ 	<selectKey keyProperty="itemId" resultType="string" order="BEFORE">
+ 		SELECT SEQ_ID.NEXTVAL AS ITEMID FROM DUAL
+ 	</selectKey>
+  	INSERT INTO ITEM
+  	  (ITEMID, PRODUCTID, SELLERUSERNAME, LISTPRICE, ATTR1, KIND)
+  	VALUES
+  	  (#{itemId},(SELECT PRODUCTID FROM PRODUCT P, CATEGORY C WHERE P.CATEGORY=C.CATID AND C.CATID=#{product.categoryId} AND P.NAME=#{product.name}), #{sellerUsername}, #{listPrice}, #{attribute1}, #{kind})
+  </insert>
+   <insert id="insertAuctionItem" parameterType="Item">
+
+  	INSERT INTO AUCTIONITEM
+  	  (ITEMID,  ENDDATE, STARTPRICE, AUC_STATUS, HIGHESTPRICE)
+  	VALUES
+  	  (#{itemId},  #{endDate}, #{startPrice}, 'OPEN', 0)
+  </insert> 
+  
+  <insert id="updateQuantityForInsertItem" parameterType="Item">
+  	<selectKey keyProperty="itemId" resultType="string" order="BEFORE">
+ 		SELECT SEQ_ID.CURRVAL AS ITEMID FROM DUAL
+  	</selectKey>
+  	INSERT INTO INVENTORY
+      (ITEMID, QTY)
+    VALUES
+      (#{itemId}, 1)
+  </insert>
+  
+  <select id="getSellingItemListBySellerUsername" resultType="Item">
+    SELECT
+      I.ITEMID,
+      I.PRODUCTID,
+      LISTPRICE,
+      SELLERUSERNAME AS sellerUsername,
+      I.PRODUCTID AS "product.productId",
+      NAME AS "product.name",
+      DESCN AS "product.description",
+      CATEGORY AS "product.categoryId",
+      STATUS,
+      ATTR1 AS attribute1,
+      ATTR2 AS attribute2
+    FROM ITEM I, PRODUCT P
+    WHERE P.PRODUCTID = I.PRODUCTID
+      AND I.SELLERUSERNAME = #{value}
+      AND I.KIND = 'P'
+  </select>
+   <select id="getSellingAuctionItemListBySellerUsername" resultType="Item">
+    SELECT
+      I.ITEMID,
+      I.PRODUCTID,
+      LISTPRICE,
+      SELLERUSERNAME AS sellerUsername,
+      I.PRODUCTID AS "product.productId",
+      NAME AS "product.name",
+      DESCN AS "product.description",
+      CATEGORY AS "product.categoryId",
+      STATUS,
+      ATTR1 AS attribute1,
+      ATTR2 AS attribute2,
+      STARTPRICE AS startPrice,
+      HIGHESTPRICE AS highestPrice,
+      ENDDATE AS endDate,
+      AUC_STATUS AS aucStatus
+    FROM ITEM I, PRODUCT P, AUCTIONITEM A
+    WHERE P.PRODUCTID = I.PRODUCTID
+      AND I.ITEMID = A.ITEMID
+      AND I.SELLERUSERNAME = #{value}
+      AND I.KIND = 'A'
+  </select>
+   <select id="getSellingItemList" resultType="Item">
+    SELECT
+       I.ITEMID,
+      I.PRODUCTID,
+      LISTPRICE,
+      SELLERUSERNAME AS sellerUsername,
+      I.PRODUCTID AS "product.productId",
+      NAME AS "product.name",
+      DESCN AS "product.description",
+      CATEGORY AS "product.categoryId",
+      STATUS,
+      ATTR1 AS attribute1,
+      ATTR2 AS attribute2,
+	STARTPRICE AS startPrice,
+	HIGHESTPRICE AS highestPrice,
+	HIGHESTUSER AS highestUser,
+	ENDDATE AS endDate,
+	WINNINGBID AS winningBid,
+	AUC_STATUS AS aucStatus
+    FROM ITEM I, PRODUCT P, AUCTIONITEM A
+    WHERE P.PRODUCTID = I.PRODUCTID AND I.ITEMID = A.ITEMID
+  </select>
+   <!-- 0624 추가 -->
+      <select id="getAuctionItem" resultType="Item">
+ SELECT
+      I.ITEMID,
+      I.PRODUCTID,
+      LISTPRICE,
+      SELLERUSERNAME AS sellerUsername,
+      I.PRODUCTID AS "product.productId",
+      NAME AS "product.name",
+      DESCN AS "product.description",
+      CATEGORY AS "product.categoryId",
+      STATUS,
+      ATTR1 AS attribute1,
+      ATTR2 AS attribute2,
+	STARTPRICE AS startPrice,
+	HIGHESTPRICE AS highestPrice,
+	HIGHESTUSER AS highestUser,
+	ENDDATE AS endDate,
+	WINNINGBID AS winningBid,
+	AUC_STATUS AS aucStatus
+  FROM ITEM I, PRODUCT P, AUCTIONITEM A
+    WHERE P.PRODUCTID = I.PRODUCTID AND I.ITEMID = A.ITEMID and A.ITEMID =#{param1}
+  </select>
+   
+   
+  <delete id="deleteItem" parameterType="string">
+  	DELETE FROM ITEM WHERE ITEMID=#{itemId}  
+  </delete>
+  <delete id="deleteItemInventory" parameterType="string">
+    DELETE FROM INVENTORY WHERE ITEMID=#{itemId}
+  </delete>
+  <delete id="deleteItemMyActivity" parameterType="string">
+  	DELETE FROM MYACTIVITY WHERE ITEMID=#{itemId}
+  </delete> 
+  <delete id="deleteAuctionItem" parameterType="string">
+  	DELETE FROM AUCTIONITEM WHERE ITEMID=#{itemId}
+  </delete> 
+  
+  <update id="updateItem" parameterType="Item">
+  	UPDATE ITEM SET
+  		LISTPRICE = #{listPrice},
+  		ATTR1 = #{attribute1}
+  		WHERE ITEMID= #{itemId}
+  </update>
+  
+    
+  <!-- 좋아요 조회수 업데이트 기능 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!-->
+  <update id="updateCountView">
+    UPDATE ITEM 
+    SET COUNTVIEW = COUNTVIEW + 1
+    WHERE ITEMID = #{itemId}
+  </update>
+  
+  <insert id="insertCountActivity" >
+    INSERT INTO MYACTIVITY
+      (FAVORITEID, USERID, ITEMID, KIND, PDATE)
+    VALUES
+      (favoriteid.NEXTVAL, #{param2}, #{param1}, 'see', SYSDATE)
+  </insert>
+  
+  <update id="updateCountLike">
+    UPDATE ITEM 
+    SET COUNTLIKE= COUNTLIKE + 1
+    WHERE ITEMID = #{itemId}
+  </update>
+  
+  <insert id="insertCountLikeActivity" >
+    INSERT INTO MYACTIVITY
+      (FAVORITEID, USERID, ITEMID, KIND, PDATE)
+    VALUES
+      (favoriteid.NEXTVAL, #{param2}, #{param1}, 'like', SYSDATE)
+  </insert>
+  <!-- 좋아요 조회수 업데이트 기능 -->
+  
+  <!--0622 수정사항   -->
+   <select id="selectIfRecent" resultType="boolean">
+   <![CDATA[
+    SELECT count(*)
+    FROM MYACTIVITY
+    WHERE ITEMID = #{param1} and USERID = #{param2} AND kind='see' AND ROWNUM >= 1 AND ROWNUM <= 2 
+    ]]>
+  </select>
+   <select id="selectIfLike" resultType="boolean">
+   <![CDATA[
+    SELECT count(*)
+    FROM MYACTIVITY
+    WHERE ITEMID = #{param1} and USERID = #{param2} AND kind='like' AND ROWNUM >= 1 AND ROWNUM <= 2 
+    ]]>
+  </select>
+  
+   <select id="getAuctionItemAtClose" resultType="string">
+   <![CDATA[
+   	  SELECT
+      ITEMID
+      FROM AUCTIONITEM
+   	  WHERE ENDDATE <= #{curTime} AND AUC_STATUS = 'OPEN'
+   ]]>
+   </select>
+   
+    <update id="closeAuction" parameterType="Date">
+    <![CDATA[
+     UPDATE AUCTIONITEM 
+     SET AUC_STATUS='CLOSE'
+     WHERE ENDDATE <= #{curTime} AND AUC_STATUS = 'OPEN'
+    ]]>
+   </update>
+   <update id="afterCloseAuction">
+   	UPDATE ITEM I
+	SET I.LISTPRICE = (SELECT A.HIGHESTPRICE
+			FROM AUCTIONITEM A
+			WHERE A.ITEMID = I.ITEMID AND A.AUC_STATUS='CLOSE')
+   </update>
+   <select id="findHighestUser" resultType="string">
+      SELECT 
+      HIGHESTUSER
+      FROM AUCTIONITEM
+      WHERE ITEMID = #{itemId}
+   </select>
+</mapper>

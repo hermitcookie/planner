@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.jpetstore.dao.mybatis.mapper.BidMapper">
+  <cache />
+  <!--  
+  <insert id="insertBid" parameterType="Bid">
+  	<selectKey keyProperty="bidId" resultType="String" order="BEFORE">
+  		SELECT SEQ_BIDID.NEXTVAL AS BIDID FROM DUAL
+  	</selectKey>
+    INSERT INTO BID
+      (BIDID, ITEMID, USERID, BIDPRICE)
+    VALUES
+      (#{bidId}, #{itemId}, #{userId}, #{bidPrice})
+  </insert> 
+  -->
+  <select id="getMyBidItems" resultType="Bid">
+  	SELECT 
+  		B.BIDID,
+  		B.BIDPRICE,
+  		B.USERID,
+  		I.ITEMID as "item.itemId",
+  		I.ATTR1 as "attribute1",
+  		A.ENDDATE as "item.endDate",
+  		A.AUC_STATUS as "item.aucStatus",
+  		A.STARTPRICE AS "item.startPrice"
+  	FROM ITEM I, BID B, AUCTIONITEM A
+  	WHERE B.ITEMID = A.ITEMID
+  		AND I.ITEMID = A.ITEMID
+  		AND B.USERID = #{userId}
+  </select>
+  
+  <update id="insertBid" parameterType="Bid">
+  	<selectKey keyProperty="bidId" resultType="String" order="BEFORE">
+  		SELECT SEQ_BIDID.NEXTVAL AS BIDID FROM DUAL
+  	</selectKey>
+  		MERGE INTO
+  			BID
+  		USING DUAL
+  			ON (ITEMID=#{itemId} AND USERID=#{userId})
+  		WHEN MATCHED THEN
+  			UPDATE SET
+  				BIDPRICE=#{bidPrice}
+  		WHEN NOT MATCHED THEN
+  			INSERT
+  				(BIDID, ITEMID, USERID, BIDPRICE)
+  			VALUES
+      			(#{bidId}, #{itemId}, #{userId}, #{bidPrice})
+  </update>
+  
+  <update id="inputHighest" parameterType="Bid">
+  <![CDATA[
+  	MERGE INTO 
+  		AUCTIONITEM
+  	USING DUAL
+  		ON (ITEMID=#{itemId})
+  	WHEN MATCHED THEN 
+  		UPDATE SET
+  			HIGHESTPRICE=#{bidPrice},
+  			HIGHESTUSER=#{userId}
+  		WHERE HIGHESTPRICE<#{bidPrice}
+  ]]>
+  </update>
+  
+  <update id="inputListPrice">
+  	UPDATE ITEM I
+	SET I.LISTPRICE = (SELECT A.HIGHESTPRICE
+			FROM AUCTIONITEM A
+			WHERE A.ITEMID = I.ITEMID)
+  </update>
+</mapper>
